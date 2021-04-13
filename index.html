@@ -27,7 +27,7 @@
                     link = link.parentNode
                 }
 
-                if (link && link.href && link.host && link.host !== location.host) {
+                if (link && link.href) {
                     console.log("Tracked event")
                     event._didTrack = true
 
