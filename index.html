@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+    <body>
+        <h1>Link delay test</h1>
+        <a href="https://google.com" target="_blank">Should open in a new tab</a>
+        <a href="https://google.com">Try holding shift or other key to open in new tab (middle mouse...)</a>
+        <a href="check-opener.html" rel="opener" target="_blank">With opener</a>
+        <a href="check-opener.html" target="_blank" rel="noopener">Without opener</a>
+
+
+        <script>
+            function handleOutbound(event) {
+                if (event._didTrack) {
+                    console.log("Prevented loop")
+                    return
+                }
+                var link = event.target;
+                while(link && (typeof link.tagName == 'undefined' || link.tagName.toLowerCase() != 'a' || !link.href)) {
+                    link = link.parentNode
+                }
+
+                if (link && link.href && link.host && link.host !== location.host) {
+                    console.log("Tracked event")
+                    event._didTrack = true
+
+                    // Delay navigation so that Plausible is notified of the click
+                    setTimeout(function() {
+                        // Resend the event
+                        const new_event = new event.constructor(event.type, event);
+                        new_event._didTrack = true
+                        event.target.dispatchEvent(new_event);
+                    }, 150);
+                    event.preventDefault();
+                }
+            }
+
+            function registerOutboundLinkEvents() {
+                document.addEventListener('click', handleOutbound)
+                document.addEventListener('auxclick', handleOutbound)
+            }
+            registerOutboundLinkEvents();
+        </script>
+    </body>
+</html>
